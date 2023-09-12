@@ -17,7 +17,7 @@ namespace GuildLeader
         public OpenGL_Shader Shader;
 
         public bool Visible = true;
-        public bool Collidable = true;
+        public bool Collidable = false;
 
         public Matrix4 PositionMatrix = Matrix4.Identity;
         public Matrix4 ScalingMatrix = Matrix4.Identity;
@@ -38,6 +38,7 @@ namespace GuildLeader
                 Shader.SetMatrix4("obj_translate", PositionMatrix);
                 Shader.SetMatrix4("obj_scale", ScalingMatrix);
                 Shader.SetMatrix4("obj_rotate", RotationMatrix);
+                Shader.SetFloat("tex_alpha", _Alpha);
                 foreach (Polygon poly in Polygons)
                 {
                     //Debug.Print("Rendering polygon {0}", poly.ImageHandle);
@@ -110,21 +111,8 @@ namespace GuildLeader
 
         public float Alpha
         {
-            get { return _Alpha; }
-            set
-            {
-                if (value != _Alpha)
-                {
-                    _Alpha = value;
-                    foreach (var poly in Polygons)
-                    {
-                        for (int i = 9; i + 12 < poly.VertexData.Count; i += 12)
-                        {
-                            poly.VertexData[i] = value;
-                        }
-                    }
-                }
-            }
+            get => _Alpha;
+            set => _Alpha = value;
         }
 
         public float GetDistance(Vector3 target)

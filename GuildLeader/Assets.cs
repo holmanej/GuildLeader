@@ -1,4 +1,5 @@
-﻿using OpenTK.Graphics.OpenGL4;
+﻿using GuildLeader.resources;
+using OpenTK.Graphics.OpenGL4;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -115,6 +116,15 @@ namespace GuildLeader
             }
 
             return textures;
+        }
+
+        public static RenderObject ImportGLTF(string file, OpenGL_Shader shader)
+        {
+            SetDir(@"/resources/models");
+            var importer = new GLTF_Importer(file);
+            var obj = importer.CreateGLTFRenderObject();
+            obj.Shader = shader;
+            return obj;
         }
 
         private static void SetDir(string name)

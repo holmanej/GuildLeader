@@ -32,12 +32,12 @@ namespace GuildLeader
                 {
                     VertexData = new List<float>()
                     {
-                        width,      0,  0, 0, 0, 0, 0, 0, 0, 1, 0, 1,
-                        width + cx, 0,  0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-                        width,      cy, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-                        width + cx, 0,  0, 0, 0, 0, 0, 0, 0, 1, 1, 1,
-                        width,      cy, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-                        width + cx, cy, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0
+                        width,      0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                        width + cx, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+                        width,      cy, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        width + cx, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+                        width,      cy, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                        width + cx, cy, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
                     },
                     ImageData = c.ImageData,
                     ImageSize = c.ImageSize,
