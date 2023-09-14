@@ -1,8 +1,10 @@
-﻿using OpenTK.Graphics.OpenGL4;
+using Newtonsoft.Json.Serialization;
+using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 
@@ -20,14 +22,21 @@ namespace GuildLeader
         public Matrix4 View_Rotate;
         public Matrix4 Projection;
 
+        public string CamName;
+        public int CamSel;
         public float ViewX = 0f;
         public float ViewY = 0;
         public float ViewZ = 0f;
         public float AngleX = 0f;
         public float AngleY = 0f;
+
+        private Stopwatch UpdateSW = new Stopwatch();
+        private Stopwatch RenderSW = new Stopwatch();
+        private List<Camera> Cameras;
         private TextObject ViewDebug;
         private TextObject FPSDebug;
-        private Queue<int> FPSQueue = new Queue<int>();
+        private Queue<double> UpdateTime_Queue = new Queue<double>();
+        private Queue<double> RenderTime_Queue = new Queue<double>();
 
         private const int VPosition_loc = 0;
         private const int VNormal_loc = 1;
@@ -51,7 +60,7 @@ namespace GuildLeader
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-            Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 100f);
+            Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 10000f);
 
             int stride = 12;
             GL.BindVertexArray(VertexArrayObject);
@@ -69,13 +78,33 @@ namespace GuildLeader
             GL.VertexAttribPointer(TexCoord_loc, 2, VertexAttribPointerType.Float, false, stride * sizeof(float), 10 * sizeof(float));
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
 
-            // Readouts
-            ViewDebug = new TextObject("ViewDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.825f, 0f), Scale = new Vector3(0.0015f, 0.0025f, 1f) };
-            FPSDebug = new TextObject("FpsDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.75f, 0f), Scale = new Vector3(0.0015f, 0.0025f, 1f) };
-            Objects.Add(ViewDebug);
-            Objects.Add(FPSDebug);
+            // Cameras
+            Cameras = new List<Camera>()
+            {
+                new Camera()
+                {
+                    Name = "Spectator",
+                    TranslationSpeed = 0.1f,
+                    RotationSpeed = 0.5f,
+                    Active = true,
+                },
+                new Camera()
+                {
+                    Name = "Player",
+                    TranslationSpeed = 0.02f,
+                    RotationSpeed = 0.5f,
+                    Active = false,
+                },
+            };
 
-            FPSQueue.Enqueue(0);
+            // Readouts
+            FPSDebug = new TextObject("FpsDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.8375f, 0f), Scale = new Vector3(0.0015f, 0.0025f, 1f) };
+            ViewDebug = new TextObject("ViewDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.775f, 0f), Scale = new Vector3(0.0015f, 0.0025f, 1f) };
+            Objects.Add(FPSDebug);
+            Objects.Add(ViewDebug);
+
+            UpdateTime_Queue.Enqueue(0);
+            RenderTime_Queue.Enqueue(0);
 
             base.OnLoad();
         }
@@ -90,92 +119,47 @@ namespace GuildLeader
             base.OnUnload();
         }
 
+        protected override void OnKeyUp(KeyboardKeyEventArgs e)
+        {
+            if (e.Key == Keys.Escape) { Close(); }
+
+            int keyint = (int)e.Key;
+            if (keyint >= (int)Keys.D1 && keyint <= (int)Keys.D9 && (keyint - (int)Keys.D1) < Cameras.Count) 
+            {
+                Cameras.ForEach(c => c.Active = false);
+                CamSel = keyint - (int)Keys.D1;
+                Cameras[CamSel].Active = true;
+            }
+
+            base.OnKeyUp(e);
+        }
+
         // This function runs on every update frame.
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            
-            if (KeyboardState.IsKeyReleased(Keys.Escape))
-            {
-                Close();
-            }
+            var updateTime = UpdateSW.Elapsed;
+            //Debug.Print("tick: {0}", updateTime);
+            UpdateSW.Restart();
+            var cam = Cameras[CamSel];
+            cam.ReadInputs(KeyboardState, MouseState);
 
-            float moveSpeed = 0.02f;
-            float turnSpeed = 0.5f;
-
-            float dsin = (float)Math.Sin(AngleY * 3.14f / 180) * moveSpeed;
-            float dcos = (float)Math.Cos(AngleY * 3.14f / 180) * moveSpeed;
-            float xMove = 0;
-            float yMove = 0;
-            float zMove = 0;
-
-            if (KeyboardState.IsKeyDown(Keys.W))
-            {
-                xMove += dsin;
-                zMove += -dcos;
-            }
-            if (KeyboardState.IsKeyDown(Keys.S))
-            {
-                xMove += -dsin;
-                zMove += dcos;
-            }
-            if (KeyboardState.IsKeyDown(Keys.A))
-            {
-                xMove += -dcos;
-                zMove += -dsin;
-            }
-            if (KeyboardState.IsKeyDown(Keys.D))
-            {
-                xMove += dcos;
-                zMove += dsin;
-            }
-            
-            if (KeyboardState.IsKeyDown(Keys.Space))
-            {
-                yMove += moveSpeed;
-            }
-            else if (KeyboardState.IsKeyDown(Keys.LeftControl))
-            {
-                yMove -= moveSpeed;
-            }
-            
-            if (KeyboardState.IsKeyDown(Keys.E))
-            {
-                AngleY += turnSpeed;
-                AngleY = AngleY >= 360 ? AngleY - 360 : AngleY;
-            }
-            else if (KeyboardState.IsKeyDown(Keys.Q))
-            {
-                AngleY -= turnSpeed;
-                AngleY = AngleY < 0 ? AngleY + 360 : AngleY;
-            }
-            if (KeyboardState.IsKeyDown(Keys.R))
-            {
-                AngleX += turnSpeed;
-                AngleX = AngleX >= 360 ? AngleX - 360 : AngleX;
-            }
-            else if (KeyboardState.IsKeyDown(Keys.F))
-            {
-                AngleX -= turnSpeed;
-                AngleX = AngleX < 0 ? AngleX + 360 : AngleX;
-            }
             if (KeyboardState.IsKeyReleased(Keys.F1))
             {
-                ViewX = 0;
-                ViewY = 0;
-                ViewZ = 0;
-                AngleX = 0;
-                AngleY = 0;
+                cam.Position = Vector3.Zero;
+                cam.Rotation = Vector3.Zero;
             }
-
-            ViewX += xMove;
-            ViewY += yMove;
-            ViewZ += zMove;
+            ViewX = cam.Position.X;
+            ViewY = cam.Position.Y;
+            ViewZ = cam.Position.Z;
+            AngleX = cam.Rotation.X;
+            AngleY = cam.Rotation.Y;
+            CamName = cam.Name;
 
             // Debug stats
-            FPSQueue.Enqueue((int)UpdateFrequency);
-            if (FPSQueue.Count > 32)
+            UpdateTime_Queue.Enqueue(1000000 / updateTime.TotalMicroseconds);
+            if (UpdateTime_Queue.Count > 32)
             {
-                FPSQueue.Dequeue();
+                UpdateTime_Queue.Dequeue();
             }
 
             base.OnUpdateFrame(e);
@@ -183,10 +167,11 @@ namespace GuildLeader
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            RenderSW.Restart();
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             ViewDebug.Text = string.Format("X: {0:F2} Y: {1:F2} Z: {2:F2} Ay: {3:F0} Ax: {4:F0}", ViewX, ViewY, ViewZ, AngleY, AngleX);
-            FPSDebug.Text = string.Format("FPS: {0:F0}", FPSQueue.Average());
+            FPSDebug.Text = string.Format("Cam: {0} FPS: {1:F0} Update: {2:F0}", CamName, RenderTime_Queue.Average(), UpdateTime_Queue.Average());
 
             View_Translate = Matrix4.CreateTranslation(-ViewX, -ViewY, -ViewZ);
             View_Scale = Matrix4.CreateScale(1f, 1f, 1f);
@@ -206,6 +191,14 @@ namespace GuildLeader
             GL.BindVertexArray(0);
             SwapBuffers();
             base.OnRenderFrame(e);
+
+            var renderTime = RenderSW.Elapsed;
+            //Debug.Print("Render Time: {0}", renderTime);
+            RenderTime_Queue.Enqueue(1000000 / renderTime.TotalMicroseconds);
+            if (RenderTime_Queue.Count > 32)
+            {
+                RenderTime_Queue.Dequeue();
+            }
         }
 
         protected override void OnResize(ResizeEventArgs e)

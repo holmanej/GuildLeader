@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,14 +24,16 @@ namespace GuildLeader
         {
             var chars = new List<Polygon>();
             float width = 0;
-            for (int i = 0; i < _Text.Length; i++)
+            try
             {
-                var c = FontSet.Polygons[_Text[i] - ' '];
-                int cx = c.ImageSize.Width;
-                int cy = c.ImageSize.Height;
-                chars.Add(new Polygon()
+                for (int i = 0; i < _Text.Length; i++)
                 {
-                    VertexData = new List<float>()
+                    var c = FontSet.Polygons[_Text[i] - ' '];
+                    int cx = c.ImageSize.Width;
+                    int cy = c.ImageSize.Height;
+                    chars.Add(new Polygon()
+                    {
+                        VertexData = new List<float>()
                     {
                         width,      0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
                         width + cx, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
@@ -39,15 +42,20 @@ namespace GuildLeader
                         width,      cy, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                         width + cx, cy, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
                     },
-                    ImageData = c.ImageData,
-                    ImageSize = c.ImageSize,
-                    ImageHandle = c.ImageHandle,
-                    ImageUpdate = true,
-                    Metal = 0.5f,
-                    Rough = 0.5f
-                });
-                width += cx;
-                //height = Math.Max(height, cy);
+                        ImageData = c.ImageData,
+                        ImageSize = c.ImageSize,
+                        ImageHandle = c.ImageHandle,
+                        ImageUpdate = true,
+                        Metal = 0.5f,
+                        Rough = 0.5f
+                    });
+                    width += cx;
+                    //height = Math.Max(height, cy);
+                }
+            }
+            catch (Exception e)
+            {
+                Debug.Print("TextObject Invalid Character Exception: {0} - Code: {1}", e.Message, e.HResult);
             }
 
             Polygons = chars;

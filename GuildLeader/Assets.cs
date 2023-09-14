@@ -26,7 +26,7 @@ namespace GuildLeader
             Fonts = LoadFonts();
             FontSets = new Dictionary<string, RenderObject>
             {
-                { "DebugFont", CreateFontsetRender(Fonts["times"], Color.White, Color.Black, 24, Shaders["debugText_shader"]) },
+                { "DebugFont", CreateFontsetRender(Fonts["times"], Color.White, Color.LightGray, 24, Shaders["debugText_shader"]) },
                 { "BigFont", CreateFontsetRender(Fonts["times"], Color.White, Color.Black, 48, Shaders["debugText_shader"]) },
                 { "DedFont", CreateFontsetRender(Fonts["times"], Color.Red, Color.Black, 48, Shaders["debugText_shader"]) },
                 { "WinFont", CreateFontsetRender(Fonts["times"], Color.Blue, Color.Black, 48, Shaders["debugText_shader"]) },

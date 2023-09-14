@@ -14,7 +14,7 @@ namespace GuildLeader.resources
 {
     public class GLTF_Importer
     {
-        public class GLTF_Loader
+        public class GLTF_Fields
         {
             public Dictionary<string, string>? asset;
             public int scene;
@@ -26,11 +26,19 @@ namespace GuildLeader.resources
             public List<Mesh>? meshes;
             public List<Accessor>? accessors;
             public List<BufferView>? bufferViews;
+            public List<Sampler>? samplers;
             public List<Buffer>? buffers;
+        }
+
+        public class Asset
+        {
+            string? generator;
+            string? version;
         }
 
         public class Scene
         {
+            public string? name;
             public List<int>? nodes;
         }
 
@@ -38,19 +46,8 @@ namespace GuildLeader.resources
         {
             public string? name;
             public int mesh;
-        }
-
-        public class PBRMetallicRoughness
-        {
-            public class BaseColorTexture
-            {
-                public int index;
-            }
-
-            public List<float>? baseColorFactor;
-            public BaseColorTexture? baseColorTexture;
-            public float metallicFactor;
-            public float roughnessFactor;
+            public List<float> translation;
+            public List<float> rotation;
         }
 
         public class Material
@@ -60,10 +57,25 @@ namespace GuildLeader.resources
             public bool doubleSided;
         }
 
+        public class PBRMetallicRoughness
+        {
+            public class BaseColorTexture
+            {
+                public int index;
+                public int texCoord;
+            }
+
+            public List<float>? baseColorFactor;
+            public BaseColorTexture? baseColorTexture;
+            public float metallicFactor;
+            public float roughnessFactor;
+        }
+
         public class Image
         {
-            public int bufferView = -1;
+            public int bufferView;
             public string? mimeType;
+            public string? name;
         }
 
         public class Texture
@@ -88,6 +100,7 @@ namespace GuildLeader.resources
                 public int material;
             }
 
+            public string? name;
             public List<Primitive>? primitives;
         }
 
@@ -111,24 +124,27 @@ namespace GuildLeader.resources
             public int byteStride;
         }
 
+        public class Sampler
+        {
+            int magFilter;
+            int minFilter;
+        }
+
         public class Buffer
         {
             public string? uri;
             public int byteLength;
         }
 
-        private GLTF_Loader ModelData = new GLTF_Loader();
+        private GLTF_Fields ModelData = new GLTF_Fields();
 
         public GLTF_Importer(string path)
         {
             Stopwatch sw = new Stopwatch();
-            using (StreamReader streamReader = File.OpenText(path))
-            {
-                sw.Start();
-                //Debug.WriteLine("Reading File");
-                ModelData = JsonConvert.DeserializeObject<GLTF_Loader>(streamReader.ReadToEnd());
-                sw.Stop();
-            }
+            using StreamReader streamReader = File.OpenText(path);
+            sw.Start();
+            ModelData = JsonConvert.DeserializeObject<GLTF_Fields>(streamReader.ReadToEnd());
+            sw.Stop();
         }
 
         public RenderObject CreateGLTFRenderObject()
@@ -144,28 +160,33 @@ namespace GuildLeader.resources
                     var vertices = (List<float>)GetBufferData(p.attributes.POSITION);
                     var normals = (List<float>)GetBufferData(p.attributes.NORMAL);
                     var colors = new List<float>() { 1f, 1f, 1f, 1f };
-                    PBRMetallicRoughness pbr = ModelData.materials[p.material].pbrMetallicRoughness;
-
-                    poly.Metal = pbr.metallicFactor;
-                    poly.Rough = pbr.roughnessFactor;
-                    if (pbr.baseColorFactor != null)
+                    PBRMetallicRoughness pbr = null;
+                    if (ModelData.materials != null)
                     {
-                        colors = pbr.baseColorFactor;
+                        pbr = ModelData.materials[p.material].pbrMetallicRoughness;
+                        poly.Metal = pbr.metallicFactor;
+                        poly.Rough = pbr.roughnessFactor;
+                        if (pbr.baseColorFactor != null)
+                        {
+                            colors = pbr.baseColorFactor;
+                        }
                     }
 
                     List<float> texCoords = new List<float>();
                     if (p.attributes.TEXCOORD_0 != 0)
                     {
                         texCoords = (List<float>)GetBufferData(p.attributes.TEXCOORD_0);
-                        byte[] imageData = GetBufferImage(pbr.baseColorTexture.index);
-
-                        using MemoryStream ms = new MemoryStream(imageData);
-                        var bmp = new Bitmap(ms);
-                        BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-                        poly.ImageData = new byte[bmp.Width * bmp.Height * 4];
-                        Marshal.Copy(bmpData.Scan0, poly.ImageData, 0, poly.ImageData.Length);
-                        bmp.UnlockBits(bmpData);
-                        poly.ImageSize = bmp.Size;
+                        if (pbr.baseColorTexture != null)
+                        {
+                            byte[] imageData = GetBufferImage(pbr.baseColorTexture.index);
+                            using MemoryStream ms = new MemoryStream(imageData);
+                            var bmp = new Bitmap(ms);
+                            BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+                            poly.ImageData = new byte[bmp.Width * bmp.Height * 4];
+                            Marshal.Copy(bmpData.Scan0, poly.ImageData, 0, poly.ImageData.Length);
+                            bmp.UnlockBits(bmpData);
+                            poly.ImageSize = bmp.Size;
+                        }
                     }
                     else
                     {
@@ -191,7 +212,7 @@ namespace GuildLeader.resources
 
         public byte[] GetBufferImage(int bufferViewID)
         {
-            BufferView bf = ModelData.bufferViews[bufferViewID];
+            BufferView bf = ModelData.bufferViews[ModelData.images[bufferViewID].bufferView];
             int bufferID = bf.buffer;
             string uri = ModelData.buffers[bufferID].uri;
             uri = uri.Substring(uri.LastIndexOf(',') + 1);

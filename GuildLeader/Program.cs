@@ -20,17 +20,17 @@ namespace GuildLeader
             });
             // Load Assets
             Assets.LoadAssets();
-            var cubex = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf"]);
-            var cubey = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf"]);
-            var cubez = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf"]);
-            var cubetex = Assets.ImportGLTF("tex2cube2_1m.gltf", Assets.Shaders["gltf"]);
-            cubex.SetPosition(5, 0, 0);
-            cubey.SetPosition(0, 5, 0);
-            cubez.SetPosition(0, 0, 5);
+            var cubex = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf"]); cubex.SetPosition(5, 0, 0);
+            var cubey = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf"]); cubey.SetPosition(0, 5, 0);
+            var cubez = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf"]); cubez.SetPosition(0, 0, 5);
+            var g = Assets.ImportGLTF("ground_1.gltf", Assets.Shaders["gltf"]); g.SetScale(10, 50, 10);
+            var p1 = Assets.ImportGLTF("person_1.gltf", Assets.Shaders["gltf"]); p1.SetPosition(0, -24f, 0);
+
             window.Objects.Add(cubex);
             window.Objects.Add(cubey);
             window.Objects.Add(cubez);
-            window.Objects.Add(cubetex);
+            window.Objects.Add(g);
+            window.Objects.Add(p1);
 
             window.VSync = VSyncMode.Off;
             window.UpdateFrequency = 120;
