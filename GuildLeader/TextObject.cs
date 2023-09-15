@@ -44,7 +44,7 @@ namespace GuildLeader
                     },
                         ImageData = c.ImageData,
                         ImageSize = c.ImageSize,
-                        ImageHandle = c.ImageHandle,
+                        TextureBufferObject = c.TextureBufferObject,
                         ImageUpdate = true,
                         Metal = 0.5f,
                         Rough = 0.5f

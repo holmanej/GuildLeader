@@ -41,6 +41,6 @@ void main()
 	
 	objColor = vColor;
 	lightColor = vec3(1f, 1f, 1f);
-	lightPos = vec3(-50f, 100f, -50f);
+	lightPos = vec3(50f, 200f, 50f);
 	viewPos = player_position;
 }

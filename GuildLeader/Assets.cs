@@ -92,7 +92,7 @@ namespace GuildLeader
                 g.TextRenderingHint = TextRenderingHint.AntiAlias;
                 g.Clear(bgColor);
                 g.DrawString(Convert.ToChar(i).ToString(), font, new SolidBrush(fgColor), 0, 0, StringFormat.GenericTypographic);
-                fontset.Polygons.Add(new RenderObject.Polygon(charBmp) { ImageHandle = GL.GenTexture() });
+                fontset.Polygons.Add(new RenderObject.Polygon(charBmp) { TextureBufferObject = GL.GenTexture() });
                 bmp.Dispose();
                 charBmp.Dispose();
             }

@@ -2,6 +2,7 @@
 using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +18,7 @@ namespace GuildLeader
         public float TranslationSpeed;
         public float RotationSpeed;
 
-        public void ReadInputs(KeyboardState kb, MouseState mouse)
+        public void ReadInputs(KeyboardState kb, MouseState mouse, double deltaTime)
         {
             float dsin = (float)Math.Sin(Rotation.Y * 3.14f / 180) * TranslationSpeed;
             float dcos = (float)Math.Cos(Rotation.Y * 3.14f / 180) * TranslationSpeed;
@@ -57,28 +58,28 @@ namespace GuildLeader
 
             if (kb.IsKeyDown(Keys.E))
             {
-                Rotation.Y += RotationSpeed;
+                Rotation.Y += (float)(RotationSpeed * deltaTime);
                 Rotation.Y = Rotation.Y >= 360 ? Rotation.Y - 360 : Rotation.Y;
             }
             else if (kb.IsKeyDown(Keys.Q))
             {
-                Rotation.Y -= RotationSpeed;
+                Rotation.Y -= (float)(RotationSpeed * deltaTime);
                 Rotation.Y = Rotation.Y < 0 ? Rotation.Y + 360 : Rotation.Y;
             }
             if (kb.IsKeyDown(Keys.R))
             {
-                Rotation.X += RotationSpeed;
+                Rotation.X += (float)(RotationSpeed * deltaTime);
                 Rotation.X = Rotation.X >= 360 ? Rotation.X - 360 : Rotation.X;
             }
             else if (kb.IsKeyDown(Keys.F))
             {
-                Rotation.X -= RotationSpeed;
+                Rotation.X -= (float)(RotationSpeed * deltaTime);
                 Rotation.X = Rotation.X < 0 ? Rotation.X + 360 : Rotation.X;
             }
 
-            Position.X += xMove;
-            Position.Y += yMove;
-            Position.Z += zMove;
+            Position.X += (float)(xMove * deltaTime);
+            Position.Y += (float)(yMove * deltaTime);
+            Position.Z += (float)(zMove * deltaTime);
         }
     }
 }

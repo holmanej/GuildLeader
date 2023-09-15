@@ -22,7 +22,7 @@ namespace GuildLeader
         public Matrix4 View_Rotate;
         public Matrix4 Projection;
 
-        public string CamName;
+        public string CamName = "cam";
         public int CamSel;
         public float ViewX = 0f;
         public float ViewY = 0;
@@ -32,25 +32,14 @@ namespace GuildLeader
 
         private Stopwatch UpdateSW = new Stopwatch();
         private Stopwatch RenderSW = new Stopwatch();
-        private List<Camera> Cameras;
-        private TextObject ViewDebug;
-        private TextObject FPSDebug;
+        private List<Camera>? Cameras;
+        private TextObject? ViewDebug;
+        private TextObject? FPSDebug;
         private Queue<double> UpdateTime_Queue = new Queue<double>();
         private Queue<double> RenderTime_Queue = new Queue<double>();
 
-        private const int VPosition_loc = 0;
-        private const int VNormal_loc = 1;
-        private const int VColor_loc = 2;
-        private const int TexCoord_loc = 3;
-        private int VertexArrayObject;
-        private int VertexBufferObject;
-        private int TextureBufferObject;
-
-        // A simple constructor to let us set properties like window size, title, FPS, etc. on the window.
         public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings) : base(gameWindowSettings, nativeWindowSettings)
         {
-            VertexArrayObject = GL.GenVertexArray();
-            VertexBufferObject = GL.GenBuffer();
         }
 
         protected override void OnLoad()
@@ -62,37 +51,21 @@ namespace GuildLeader
 
             Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 10000f);
 
-            int stride = 12;
-            GL.BindVertexArray(VertexArrayObject);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
-            GL.EnableVertexAttribArray(VPosition_loc);
-            GL.VertexAttribPointer(VPosition_loc, 3, VertexAttribPointerType.Float, false, stride * sizeof(float), 0);
-
-            GL.EnableVertexAttribArray(VNormal_loc);
-            GL.VertexAttribPointer(VNormal_loc, 3, VertexAttribPointerType.Float, false, stride * sizeof(float), 3 * sizeof(float));
-
-            GL.EnableVertexAttribArray(VColor_loc);
-            GL.VertexAttribPointer(VColor_loc, 4, VertexAttribPointerType.Float, false, stride * sizeof(float), 6 * sizeof(float));
-
-            GL.EnableVertexAttribArray(TexCoord_loc);
-            GL.VertexAttribPointer(TexCoord_loc, 2, VertexAttribPointerType.Float, false, stride * sizeof(float), 10 * sizeof(float));
-            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
-
             // Cameras
             Cameras = new List<Camera>()
             {
                 new Camera()
                 {
                     Name = "Spectator",
-                    TranslationSpeed = 0.1f,
-                    RotationSpeed = 0.5f,
+                    TranslationSpeed = 400f,
+                    RotationSpeed = 80f,
                     Active = true,
                 },
                 new Camera()
                 {
                     Name = "Player",
-                    TranslationSpeed = 0.02f,
-                    RotationSpeed = 0.5f,
+                    TranslationSpeed = 10f,
+                    RotationSpeed = 60f,
                     Active = false,
                 },
             };
@@ -111,9 +84,6 @@ namespace GuildLeader
 
         protected override void OnUnload()
         {
-            GL.DeleteVertexArray(VertexArrayObject);
-            GL.DeleteBuffer(VertexBufferObject);
-            GL.DeleteTexture(TextureBufferObject);
             //RenderObjects.ForEach(obj => obj.Shader.Dispose());
 
             base.OnUnload();
@@ -134,14 +104,13 @@ namespace GuildLeader
             base.OnKeyUp(e);
         }
 
-        // This function runs on every update frame.
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             var updateTime = UpdateSW.Elapsed;
             //Debug.Print("tick: {0}", updateTime);
             UpdateSW.Restart();
             var cam = Cameras[CamSel];
-            cam.ReadInputs(KeyboardState, MouseState);
+            cam.ReadInputs(KeyboardState, MouseState, updateTime.TotalSeconds);
 
             if (KeyboardState.IsKeyReleased(Keys.F1))
             {
@@ -185,7 +154,7 @@ namespace GuildLeader
                 obj.Shader.SetMatrix4("view_translate", View_Translate);
                 obj.Shader.SetMatrix4("view_rotate", View_Rotate);
                 obj.Shader.SetMatrix4("projection", Projection);
-                obj.Render(VertexArrayObject);
+                obj.Render();
             }
 
             GL.BindVertexArray(0);

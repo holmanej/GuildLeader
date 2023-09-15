@@ -12,12 +12,12 @@ namespace GuildLeader
 {
     public class RenderObject
     {
-        public List<RenderObject> Children = new List<RenderObject>();
         public List<Polygon> Polygons = new List<Polygon>();
-        public OpenGL_Shader Shader;
+        public OpenGL_Shader? Shader;
 
         public bool Visible = true;
         public bool Collidable = false;
+        public BufferUsageHint ObjectUsage = BufferUsageHint.StreamDraw;
 
         public Matrix4 PositionMatrix = Matrix4.Identity;
         public Matrix4 ScalingMatrix = Matrix4.Identity;
@@ -28,7 +28,37 @@ namespace GuildLeader
         private Vector3 _Rotation = new Vector3(0, 0, 0);
         private float _Alpha = 1.0f;
 
-        public virtual void Render(int vArrayObj)
+        private readonly int VertexArrayObject;
+        private readonly int VertexBufferObject;
+
+        public RenderObject()
+        {
+            VertexArrayObject = GL.GenVertexArray();
+            VertexBufferObject = GL.GenBuffer();
+
+            int VPosition_loc = 0;
+            int VNormal_loc = 1;
+            int VColor_loc = 2;
+            int TexCoord_loc = 3;
+
+            int stride = 12;
+            GL.BindVertexArray(VertexArrayObject);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
+            GL.EnableVertexAttribArray(VPosition_loc);
+            GL.VertexAttribPointer(VPosition_loc, 3, VertexAttribPointerType.Float, false, stride * sizeof(float), 0);
+
+            GL.EnableVertexAttribArray(VNormal_loc);
+            GL.VertexAttribPointer(VNormal_loc, 3, VertexAttribPointerType.Float, false, stride * sizeof(float), 3 * sizeof(float));
+
+            GL.EnableVertexAttribArray(VColor_loc);
+            GL.VertexAttribPointer(VColor_loc, 4, VertexAttribPointerType.Float, false, stride * sizeof(float), 6 * sizeof(float));
+
+            GL.EnableVertexAttribArray(TexCoord_loc);
+            GL.VertexAttribPointer(TexCoord_loc, 2, VertexAttribPointerType.Float, false, stride * sizeof(float), 10 * sizeof(float));
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+        }
+
+        public virtual void Render()
         {
             Stopwatch sw = new Stopwatch();
             if (Visible && Shader != null)
@@ -38,18 +68,18 @@ namespace GuildLeader
                 Shader.SetMatrix4("obj_translate", PositionMatrix);
                 Shader.SetMatrix4("obj_scale", ScalingMatrix);
                 Shader.SetMatrix4("obj_rotate", RotationMatrix);
-                Shader.SetFloat("tex_alpha", _Alpha);
+                Shader.SetFloat("tex_alpha", Alpha);
                 foreach (Polygon poly in Polygons)
                 {
                     //Debug.Print("Rendering polygon {0}", poly.ImageHandle);
-                    if (poly.ImageHandle == 0)
+                    if (poly.TextureBufferObject == 0)
                     {
-                        poly.ImageHandle = GL.GenTexture();
+                        poly.TextureBufferObject = GL.GenTexture();
                         poly.ImageUpdate = true;
                     }
 
                     GL.ActiveTexture(TextureUnit.Texture0);
-                    GL.BindTexture(TextureTarget.Texture2D, poly.ImageHandle);
+                    GL.BindTexture(TextureTarget.Texture2D, poly.TextureBufferObject);
 
                     if (poly.ImageUpdate)
                     {
@@ -60,9 +90,9 @@ namespace GuildLeader
                     sw.Start();
 
                     //Debug.Print("Vcnt {0}", poly.VertexData.Count);
-                    GL.BindVertexArray(vArrayObj);
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, vArrayObj);
-                    GL.BufferData(BufferTarget.ArrayBuffer, poly.VertexData.Count * sizeof(float), poly.VertexData.ToArray(), BufferUsageHint.DynamicDraw);
+                    GL.BindVertexArray(VertexBufferObject);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
+                    GL.BufferData(BufferTarget.ArrayBuffer, poly.VertexData.Count * sizeof(float), poly.VertexData.ToArray(), BufferUsageHint.StreamDraw);
                     GL.DrawArrays(PrimitiveType.Triangles, 0, poly.VertexData.Count);
                     GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
                     sw.Stop();
@@ -185,7 +215,7 @@ namespace GuildLeader
             public Vector3 SurfaceNormal = Vector3.Zero;
             public byte[] ImageData = Array.Empty<byte>();
             public Size ImageSize;
-            public int ImageHandle;
+            public int TextureBufferObject;
             public bool ImageUpdate;
             public float Metal;
             public float Rough;
@@ -199,7 +229,7 @@ namespace GuildLeader
                 SurfaceNormal = poly.SurfaceNormal;
                 ImageData = poly.ImageData;
                 ImageSize = poly.ImageSize;
-                ImageHandle = 0;
+                TextureBufferObject = 0;
                 ImageUpdate = true;
                 Metal = poly.Metal;
                 Rough = poly.Rough;
