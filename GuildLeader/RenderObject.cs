@@ -23,6 +23,8 @@ namespace GuildLeader
         public Matrix4 ScalingMatrix = Matrix4.Identity;
         public Matrix4 RotationMatrix = Matrix4.Identity;
 
+        public bool Blinn_Lighting = true;
+
         private Vector3 _Position = new Vector3(0, 0, 0);
         private Vector3 _Scale = new Vector3(1, 1, 1);
         private Vector3 _Rotation = new Vector3(0, 0, 0);
@@ -31,7 +33,7 @@ namespace GuildLeader
         private Vector3 _AmbientFactor = new Vector3(1.0f, 1.0f, 1.0f);
         private Vector3 _DiffuseFactor = new Vector3(1.0f, 1.0f, 1.0f);
         private Vector3 _SpecularFactor = new Vector3(1.0f, 1.0f, 1.0f);
-        private float _ShinyFactor = 32;
+        private float _ShinyFactor = 8;
 
         private readonly int _VertexArrayObject;
         private readonly int _VertexBufferObject;
@@ -77,6 +79,7 @@ namespace GuildLeader
                 Shader.SetVector3("material.DiffuseFactor", _DiffuseFactor);
                 Shader.SetVector3("material.SpecularFactor", _SpecularFactor);
                 Shader.SetFloat("material.ShinyFactor", _ShinyFactor);
+                Shader.SetFloat("blinn", Blinn_Lighting ? 1 : 0);
                 Shader.SetFloat("tex_alpha", Alpha);
                 foreach (Polygon poly in Polygons)
                 {

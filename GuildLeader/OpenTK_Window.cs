@@ -73,8 +73,8 @@ namespace GuildLeader
             };
 
             // Readouts
-            FPSDebug = new TextObject("FpsDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.8375f, 0f), Scale = new Vector3(0.0015f, 0.0025f, 1f) };
-            ViewDebug = new TextObject("ViewDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.775f, 0f), Scale = new Vector3(0.0015f, 0.0025f, 1f) };
+            FPSDebug = new TextObject("FpsDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.825f, 0f), Scale = new Vector3(0.001f, 0.0015f, 1f) };
+            ViewDebug = new TextObject("ViewDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.75f, 0f), Scale = new Vector3(0.001f, 0.0015f, 1f) };
             Objects.Add(FPSDebug);
             Objects.Add(ViewDebug);
 

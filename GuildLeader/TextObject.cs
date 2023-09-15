@@ -28,20 +28,24 @@ namespace GuildLeader
             {
                 for (int i = 0; i < _Text.Length; i++)
                 {
-                    var c = FontSet.Polygons[_Text[i] - ' '];
+                    var c = FontSet.Polygons[' '];
+                    if (_Text[i] - ' ' < FontSet.Polygons.Count)
+                    {
+                        c = FontSet.Polygons[_Text[i] - ' '];
+                    }
                     int cx = c.ImageSize.Width;
                     int cy = c.ImageSize.Height;
                     chars.Add(new Polygon()
                     {
                         VertexData = new List<float>()
-                    {
-                        width,      0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                        width + cx, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                        width,      cy, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        width + cx, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
-                        width,      cy, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                        width + cx, cy, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
-                    },
+                        {
+                            width,      0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
+                            width + cx, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+                            width,      cy, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            width + cx, 0,  0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+                            width,      cy, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                            width + cx, cy, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0
+                        },
                         ImageData = c.ImageData,
                         ImageSize = c.ImageSize,
                         TextureBufferObject = c.TextureBufferObject,

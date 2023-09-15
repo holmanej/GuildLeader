@@ -16,6 +16,7 @@ out float texAlpha;
 void main()
 {
 	gl_Position = vec4(vPosition, 1) * obj_scale * obj_translate;
-	texAlpha = tex_alpha;
+	
 	texCoord = tCoord;	
+	texAlpha = tex_alpha;
 }

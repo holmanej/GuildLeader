@@ -104,6 +104,12 @@ namespace GuildLeader
             GC.SuppressFinalize(this);
         }
 
+        public void SetInt(string name, int data)
+        {
+            GL.UseProgram(Handle);
+            GL.Uniform1(GL.GetUniformLocation(Handle, name), 1, ref data);
+        }
+
         public void SetFloat(string name, float data)
         {
             GL.UseProgram(Handle);

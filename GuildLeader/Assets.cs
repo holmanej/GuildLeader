@@ -26,7 +26,7 @@ namespace GuildLeader
             Fonts = LoadFonts();
             FontSets = new Dictionary<string, RenderObject>
             {
-                { "DebugFont", CreateFontsetRender(Fonts["times"], Color.White, Color.LightGray, 24, Shaders["debugText_shader"]) },
+                { "DebugFont", CreateFontsetRender(Fonts["times"], Color.White, Color.Black, 48, Shaders["debugText_shader"]) },
                 { "BigFont", CreateFontsetRender(Fonts["times"], Color.White, Color.Black, 48, Shaders["debugText_shader"]) },
                 { "DedFont", CreateFontsetRender(Fonts["times"], Color.Red, Color.Black, 48, Shaders["debugText_shader"]) },
                 { "WinFont", CreateFontsetRender(Fonts["times"], Color.Blue, Color.Black, 48, Shaders["debugText_shader"]) },
@@ -89,10 +89,17 @@ namespace GuildLeader
                 SizeF charSize = g.MeasureString(Convert.ToChar(i).ToString(), font);
                 Bitmap charBmp = new Bitmap((int)charSize.Width, font.Height, System.Drawing.Imaging.PixelFormat.Format32bppRgb);
                 g = Graphics.FromImage(charBmp);
-                g.TextRenderingHint = TextRenderingHint.AntiAlias;
+                g.TextRenderingHint = TextRenderingHint.SingleBitPerPixelGridFit;
                 g.Clear(bgColor);
                 g.DrawString(Convert.ToChar(i).ToString(), font, new SolidBrush(fgColor), 0, 0, StringFormat.GenericTypographic);
-                fontset.Polygons.Add(new RenderObject.Polygon(charBmp) { TextureBufferObject = GL.GenTexture() });
+                int tbo = GL.GenTexture();
+                GL.BindTexture(TextureTarget.Texture2D, tbo);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Linear);
+                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
+                GL.BindTexture(TextureTarget.Texture2D, 0);
+                fontset.Polygons.Add(new RenderObject.Polygon(charBmp) { TextureBufferObject = tbo });
                 bmp.Dispose();
                 charBmp.Dispose();
             }

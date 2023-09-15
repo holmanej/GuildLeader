@@ -24,6 +24,8 @@ struct Light
 	vec3 SpecularFactor;
 };
 
+uniform float blinn;
+
 uniform mat4 obj_translate;
 uniform mat4 obj_scale;
 uniform mat4 obj_rotate;
@@ -46,6 +48,7 @@ out float texAlpha;
 
 out vec3 viewPos;
 out Light light;
+out float blinn_frag;
 
 void main()
 {
@@ -66,4 +69,5 @@ void main()
 	light.AmbientFactor = vec3(1f, 1f, 1f) * 0.1f;
 	light.DiffuseFactor = vec3(1f, 1f, 1f);
 	light.SpecularFactor = vec3(1f, 1f, 1f);
+	blinn_frag = blinn;
 }
