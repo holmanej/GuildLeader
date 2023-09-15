@@ -20,13 +20,13 @@ namespace GuildLeader
             });
             // Load Assets
             Assets.LoadAssets();
-            var cubex = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf"]); cubex.SetPosition(5, 0, 0);
-            var cubey = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf"]); cubey.SetPosition(0, 5, 0);
-            var cubez = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf"]); cubez.SetPosition(0, 0, 5);
-            var g = Assets.ImportGLTF("ground_1.gltf", Assets.Shaders["gltf"]); g.SetScale(40, 60, 40);
-            var p1 = Assets.ImportGLTF("person_1.gltf", Assets.Shaders["gltf"]); p1.SetPosition(0, -0.3f, 0);
-            var p2 = Assets.ImportGLTF("person_1.gltf", Assets.Shaders["gltf"]); p2.SetPosition(-75f, 5f, 450f);
-            var h1 = Assets.ImportGLTF("house_1.gltf", Assets.Shaders["gltf"]); h1.SetPosition(-400f, 7.5f, 1720f);
+            var cubex = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf_shader"]); cubex.SetPosition(5, 0, 0);
+            var cubey = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf_shader"]); cubey.SetPosition(0, 5, 0);
+            var cubez = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf_shader"]); cubez.SetPosition(0, 0, 5);
+            var g = Assets.ImportGLTF("ground_1.gltf", Assets.Shaders["gltf_shader"]); g.SetScale(40, 60, 40); g.AmbientFactor = 0.1f; g.DiffuseFactor = 0.7f; g.SpecularFactor = 1f;
+            var p1 = Assets.ImportGLTF("person_1.gltf", Assets.Shaders["gltf_shader"]); p1.SetPosition(0, -0.3f, 0);
+            var p2 = Assets.ImportGLTF("person_1.gltf", Assets.Shaders["gltf_shader"]); p2.SetPosition(-75f, 5f, 450f);
+            var h1 = Assets.ImportGLTF("house_1.gltf", Assets.Shaders["gltf_shader"]); h1.SetPosition(-400f, 7.5f, 1720f);
 
             for (int i = 0; i < 6; i++)
             {

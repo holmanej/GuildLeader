@@ -32,9 +32,9 @@ namespace GuildLeader
 
         private Stopwatch UpdateSW = new Stopwatch();
         private Stopwatch RenderSW = new Stopwatch();
-        private List<Camera>? Cameras;
-        private TextObject? ViewDebug;
-        private TextObject? FPSDebug;
+        private List<Camera> Cameras;
+        private TextObject ViewDebug;
+        private TextObject FPSDebug;
         private Queue<double> UpdateTime_Queue = new Queue<double>();
         private Queue<double> RenderTime_Queue = new Queue<double>();
 
@@ -58,6 +58,7 @@ namespace GuildLeader
                 {
                     Name = "Spectator",
                     TranslationSpeed = 400f,
+                    VerticalSpeed = 100f,
                     RotationSpeed = 80f,
                     Active = true,
                 },
@@ -65,7 +66,8 @@ namespace GuildLeader
                 {
                     Name = "Player",
                     TranslationSpeed = 10f,
-                    RotationSpeed = 60f,
+                    VerticalSpeed = 5f,
+                    RotationSpeed = 70f,
                     Active = false,
                 },
             };

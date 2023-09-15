@@ -16,6 +16,7 @@ namespace GuildLeader
         public Vector3 Position;
         public Vector3 Rotation;
         public float TranslationSpeed;
+        public float VerticalSpeed;
         public float RotationSpeed;
 
         public void ReadInputs(KeyboardState kb, MouseState mouse, double deltaTime)
@@ -49,11 +50,11 @@ namespace GuildLeader
 
             if (kb.IsKeyDown(Keys.Space))
             {
-                yMove += TranslationSpeed;
+                yMove += VerticalSpeed;
             }
             else if (kb.IsKeyDown(Keys.LeftControl))
             {
-                yMove -= TranslationSpeed;
+                yMove -= VerticalSpeed;
             }
 
             if (kb.IsKeyDown(Keys.E))

@@ -28,22 +28,27 @@ namespace GuildLeader
         private Vector3 _Rotation = new Vector3(0, 0, 0);
         private float _Alpha = 1.0f;
 
-        private readonly int VertexArrayObject;
-        private readonly int VertexBufferObject;
+        private Vector3 _AmbientFactor = new Vector3(1.0f, 1.0f, 1.0f);
+        private Vector3 _DiffuseFactor = new Vector3(1.0f, 1.0f, 1.0f);
+        private Vector3 _SpecularFactor = new Vector3(1.0f, 1.0f, 1.0f);
+        private float _ShinyFactor = 32;
+
+        private readonly int _VertexArrayObject;
+        private readonly int _VertexBufferObject;
 
         public RenderObject()
         {
-            VertexArrayObject = GL.GenVertexArray();
-            VertexBufferObject = GL.GenBuffer();
+            _VertexArrayObject = GL.GenVertexArray();
+            _VertexBufferObject = GL.GenBuffer();
 
             int VPosition_loc = 0;
             int VNormal_loc = 1;
             int VColor_loc = 2;
             int TexCoord_loc = 3;
-
             int stride = 12;
-            GL.BindVertexArray(VertexArrayObject);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
+
+            GL.BindVertexArray(_VertexArrayObject);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _VertexBufferObject);
             GL.EnableVertexAttribArray(VPosition_loc);
             GL.VertexAttribPointer(VPosition_loc, 3, VertexAttribPointerType.Float, false, stride * sizeof(float), 0);
 
@@ -63,15 +68,18 @@ namespace GuildLeader
             Stopwatch sw = new Stopwatch();
             if (Visible && Shader != null)
             {
-                //Debug.Print("Rendering object");
                 Shader.Use();
                 Shader.SetMatrix4("obj_translate", PositionMatrix);
                 Shader.SetMatrix4("obj_scale", ScalingMatrix);
                 Shader.SetMatrix4("obj_rotate", RotationMatrix);
+
+                Shader.SetVector3("material.AmbientFactor", _AmbientFactor);
+                Shader.SetVector3("material.DiffuseFactor", _DiffuseFactor);
+                Shader.SetVector3("material.SpecularFactor", _SpecularFactor);
+                Shader.SetFloat("material.ShinyFactor", _ShinyFactor);
                 Shader.SetFloat("tex_alpha", Alpha);
                 foreach (Polygon poly in Polygons)
                 {
-                    //Debug.Print("Rendering polygon {0}", poly.ImageHandle);
                     if (poly.TextureBufferObject == 0)
                     {
                         poly.TextureBufferObject = GL.GenTexture();
@@ -89,9 +97,8 @@ namespace GuildLeader
                     }
                     sw.Start();
 
-                    //Debug.Print("Vcnt {0}", poly.VertexData.Count);
-                    GL.BindVertexArray(VertexBufferObject);
-                    GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
+                    GL.BindVertexArray(_VertexBufferObject);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, _VertexBufferObject);
                     GL.BufferData(BufferTarget.ArrayBuffer, poly.VertexData.Count * sizeof(float), poly.VertexData.ToArray(), BufferUsageHint.StreamDraw);
                     GL.DrawArrays(PrimitiveType.Triangles, 0, poly.VertexData.Count);
                     GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
@@ -143,6 +150,33 @@ namespace GuildLeader
         {
             get => _Alpha;
             set => _Alpha = value;
+        }
+
+        public float AmbientFactor
+        {
+            get => _AmbientFactor.X;
+            set
+            {
+                _AmbientFactor = new Vector3(value);
+            }
+        }
+
+        public float DiffuseFactor
+        {
+            get => _DiffuseFactor.X;
+            set
+            {
+                _DiffuseFactor = new Vector3(value);
+            }
+        }
+
+        public float SpecularFactor
+        {
+            get => _SpecularFactor.X;
+            set
+            {
+                _SpecularFactor = new Vector3(value);
+            }
         }
 
         public float GetDistance(Vector3 target)
