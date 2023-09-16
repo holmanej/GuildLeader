@@ -13,16 +13,19 @@ namespace GuildLeader
     public class RenderObject
     {
         public List<Polygon> Polygons = new List<Polygon>();
-        public OpenGL_Shader? Shader;
+        public OpenGL_Shader? Geometry_Shader;
+        public OpenGL_Shader? ShadowMap_Shader = Assets.Shaders["depthMap_shader"];
 
         public bool Visible = true;
         public bool Collidable = false;
         public BufferUsageHint ObjectUsage = BufferUsageHint.StreamDraw;
+        public Vector2i ShadowResolution = new Vector2i(1024, 1024);
 
         public Matrix4 PositionMatrix = Matrix4.Identity;
         public Matrix4 ScalingMatrix = Matrix4.Identity;
         public Matrix4 RotationMatrix = Matrix4.Identity;
 
+        public bool UpdateGeometry = true;
         public bool Blinn_Lighting = true;
 
         private Vector3 _Position = new Vector3(0, 0, 0);
@@ -37,9 +40,11 @@ namespace GuildLeader
 
         private readonly int _VertexArrayObject;
         private readonly int _VertexBufferObject;
-
+        private readonly int _ShadowFramebufferObject;
+        
         public RenderObject()
         {
+            // Build Vertex Array/Buffer
             _VertexArrayObject = GL.GenVertexArray();
             _VertexBufferObject = GL.GenBuffer();
 
@@ -63,24 +68,82 @@ namespace GuildLeader
             GL.EnableVertexAttribArray(TexCoord_loc);
             GL.VertexAttribPointer(TexCoord_loc, 2, VertexAttribPointerType.Float, false, stride * sizeof(float), 10 * sizeof(float));
             GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+
+            // Build Shadow Framebuffer
+            _ShadowFramebufferObject = GL.GenFramebuffer();
+            // Shadow Texture
+            int shadow_tex = GL.GenTexture();
+            GL.BindTexture(TextureTarget.Texture2D, shadow_tex);
+            GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.DepthComponent32f, ShadowResolution.X, ShadowResolution.Y, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.Float, Array.Empty<float>());
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMagFilter.Nearest);
+            GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, _ShadowFramebufferObject);
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthAttachment, TextureTarget.Texture2D, shadow_tex, 0);
+            GL.DrawBuffer(DrawBufferMode.None);
+            GL.ReadBuffer(ReadBufferMode.None);
+            GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+
+            if (GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer) != FramebufferErrorCode.FramebufferComplete)
+            {
+                Debug.Print("Framebuffer bad");
+            }
         }
 
-        public virtual void Render()
+        public virtual void RenderShadows()
+        {
+            if (Visible && ShadowMap_Shader != null)
+            {
+                ShadowMap_Shader.Use();
+                ShadowMap_Shader.SetMatrix4("obj_translate", PositionMatrix);
+                ShadowMap_Shader.SetMatrix4("obj_scale", ScalingMatrix);
+                ShadowMap_Shader.SetMatrix4("obj_rotate", RotationMatrix);
+
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, _ShadowFramebufferObject);
+                GL.BindVertexArray(VertexArrayObject);
+
+                foreach (Polygon poly in Polygons)
+                {
+                    GL.BindVertexArray(_VertexBufferObject);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, _VertexBufferObject);
+                    if (UpdateGeometry || ObjectUsage != BufferUsageHint.StaticDraw)
+                    {
+                        GL.BufferData(BufferTarget.ArrayBuffer, poly.VertexData.Count * sizeof(float), poly.VertexData.ToArray(), ObjectUsage);
+                    }
+                    GL.DrawArrays(PrimitiveType.Triangles, 0, poly.VertexData.Count);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                }
+
+                GL.BindFramebuffer(FramebufferTarget.Framebuffer, 0);
+                GL.BindVertexArray(0);
+            }
+        }
+
+        public virtual void RenderGeometry()
         {
             Stopwatch sw = new Stopwatch();
-            if (Visible && Shader != null)
+            if (Visible && Geometry_Shader != null)
             {
-                Shader.Use();
-                Shader.SetMatrix4("obj_translate", PositionMatrix);
-                Shader.SetMatrix4("obj_scale", ScalingMatrix);
-                Shader.SetMatrix4("obj_rotate", RotationMatrix);
+                Geometry_Shader.Use();
+                //Geometry_Shader.SetTransform("modelT", PositionMatrix, ScalingMatrix, RotationMatrix);
+                //Geometry_Shader.SetMatrix4("modelT.Translation", PositionMatrix);
+                //Geometry_Shader.SetMatrix4("modelT.Scale", ScalingMatrix);
+                //Geometry_Shader.SetMatrix4("modelT.Rotation", RotationMatrix);
+                Geometry_Shader.SetMatrix4("obj_translate", PositionMatrix);
+                Geometry_Shader.SetMatrix4("obj_scale", ScalingMatrix);
+                Geometry_Shader.SetMatrix4("obj_rotate", RotationMatrix);
 
-                Shader.SetVector3("material.AmbientFactor", _AmbientFactor);
-                Shader.SetVector3("material.DiffuseFactor", _DiffuseFactor);
-                Shader.SetVector3("material.SpecularFactor", _SpecularFactor);
-                Shader.SetFloat("material.ShinyFactor", _ShinyFactor);
-                Shader.SetFloat("blinn", Blinn_Lighting ? 1 : 0);
-                Shader.SetFloat("tex_alpha", Alpha);
+
+                Geometry_Shader.SetVector3("material.AmbientFactor", _AmbientFactor);
+                Geometry_Shader.SetVector3("material.DiffuseFactor", _DiffuseFactor);
+                Geometry_Shader.SetVector3("material.SpecularFactor", _SpecularFactor);
+                Geometry_Shader.SetFloat("material.ShinyFactor", _ShinyFactor);
+                Geometry_Shader.SetFloat("blinn", Blinn_Lighting ? 1 : 0);
+                Geometry_Shader.SetFloat("tex_alpha", Alpha);
+
+                GL.BindVertexArray(VertexArrayObject);
+
                 foreach (Polygon poly in Polygons)
                 {
                     if (poly.TextureBufferObject == 0)
@@ -94,7 +157,7 @@ namespace GuildLeader
 
                     if (poly.ImageUpdate)
                     {
-                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, poly.ImageSize.Width, poly.ImageSize.Height, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, poly.ImageData);
+                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.SrgbAlpha, poly.ImageSize.Width, poly.ImageSize.Height, 0, OpenTK.Graphics.OpenGL4.PixelFormat.Bgra, PixelType.UnsignedByte, poly.ImageData);
                         GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
                         poly.ImageUpdate = false;
                     }
@@ -102,12 +165,27 @@ namespace GuildLeader
 
                     GL.BindVertexArray(_VertexBufferObject);
                     GL.BindBuffer(BufferTarget.ArrayBuffer, _VertexBufferObject);
-                    GL.BufferData(BufferTarget.ArrayBuffer, poly.VertexData.Count * sizeof(float), poly.VertexData.ToArray(), BufferUsageHint.StreamDraw);
+                    if (UpdateGeometry || ObjectUsage != BufferUsageHint.StaticDraw)
+                    {
+                        GL.BufferData(BufferTarget.ArrayBuffer, poly.VertexData.Count * sizeof(float), poly.VertexData.ToArray(), ObjectUsage);
+                    }
                     GL.DrawArrays(PrimitiveType.Triangles, 0, poly.VertexData.Count);
                     GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                    GL.BindVertexArray(0);
                     sw.Stop();
                 }
+                UpdateGeometry = false;
             }
+        }
+
+        public int VertexArrayObject
+        {
+            get => _VertexArrayObject;
+        }
+
+        public int VertexBufferObject
+        {
+            get => _VertexBufferObject;
         }
 
         public Vector3 Position

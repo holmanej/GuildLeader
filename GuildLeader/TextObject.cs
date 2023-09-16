@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OpenTK.Graphics.OpenGL4;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,13 +10,27 @@ namespace GuildLeader
 {
     internal class TextObject : RenderObject
     {
+        public string Text
+        {
+            get => _Text;
+            set
+            {
+                if (value != _Text)
+                {
+                    _Text = value;
+                    WriteString();
+                    UpdateGeometry = true;
+                }
+            }
+        }
+
         public RenderObject FontSet;
         public string _Text;
 
         public TextObject(string text, RenderObject fontset, OpenGL_Shader shader)
         {
             FontSet = fontset;
-            Shader = shader;
+            Geometry_Shader = shader;
             _Text = text;
             WriteString();
         }
@@ -65,15 +80,41 @@ namespace GuildLeader
             Polygons = chars;
         }
 
-        public string Text
+        public override void RenderGeometry()
         {
-            get { return _Text; }
-            set
+            Stopwatch sw = new Stopwatch();
+            if (Visible && Geometry_Shader != null)
             {
-                if (value != _Text)
+                Geometry_Shader.Use();
+                Geometry_Shader.SetMatrix4("obj_translate", PositionMatrix);
+                Geometry_Shader.SetMatrix4("obj_scale", ScalingMatrix);
+                Geometry_Shader.SetFloat("tex_alpha", Alpha);
+
+                foreach (Polygon poly in Polygons)
                 {
-                    _Text = value;
-                    WriteString();
+                    if (poly.TextureBufferObject == 0)
+                    {
+                        poly.TextureBufferObject = GL.GenTexture();
+                        poly.ImageUpdate = true;
+                    }
+
+                    GL.ActiveTexture(TextureUnit.Texture0);
+                    GL.BindTexture(TextureTarget.Texture2D, poly.TextureBufferObject);
+
+                    if (poly.ImageUpdate)
+                    {
+                        GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.SrgbAlpha, poly.ImageSize.Width, poly.ImageSize.Height, 0, PixelFormat.Bgra, PixelType.UnsignedByte, poly.ImageData);
+                        GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+                        poly.ImageUpdate = false;
+                    }
+                    sw.Start();
+
+                    GL.BindVertexArray(VertexBufferObject);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, VertexBufferObject);
+                    GL.BufferData(BufferTarget.ArrayBuffer, poly.VertexData.Count * sizeof(float), poly.VertexData.ToArray(), ObjectUsage);
+                    GL.DrawArrays(PrimitiveType.Triangles, 0, poly.VertexData.Count);
+                    GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+                    sw.Stop();
                 }
             }
         }

@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GuildLeader
 {
@@ -132,6 +133,14 @@ namespace GuildLeader
         {
             GL.UseProgram(Handle);
             GL.Uniform1(GL.GetUniformLocation(Handle, name), unit);
+        }
+
+        public void SetTransform(string name, Matrix4 trans, Matrix4 scale, Matrix4 rotat)
+        {
+            GL.UseProgram(Handle);
+            GL.UniformMatrix4(GL.GetUniformLocation(Handle, name + ".Translation"), true, ref trans);
+            GL.UniformMatrix4(GL.GetUniformLocation(Handle, name + ".Scale"), true, ref scale);
+            GL.UniformMatrix4(GL.GetUniformLocation(Handle, name + ".Rotation"), true, ref rotat);
         }
     }
 }

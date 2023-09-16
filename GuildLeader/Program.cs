@@ -20,31 +20,36 @@ namespace GuildLeader
             });
             // Load Assets
             Assets.LoadAssets();
-            var cubex = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf_shader"]); cubex.SetPosition(5, 0, 0);
-            var cubey = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf_shader"]); cubey.SetPosition(0, 5, 0);
-            var cubez = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf_shader"]); cubez.SetPosition(0, 0, 5);
-            var g = Assets.ImportGLTF("ground_1.gltf", Assets.Shaders["gltf_shader"]); g.SetScale(40, 60, 40); g.AmbientFactor = 0.1f; g.DiffuseFactor = 0.7f; g.SpecularFactor = 1f;
-            var p1 = Assets.ImportGLTF("person_1.gltf", Assets.Shaders["gltf_shader"]); p1.SetPosition(0, -0.3f, 0);
-            var p2 = Assets.ImportGLTF("person_1.gltf", Assets.Shaders["gltf_shader"]); p2.SetPosition(-75f, 5f, 450f);
-            var h1 = Assets.ImportGLTF("house_1.gltf", Assets.Shaders["gltf_shader"]); h1.SetPosition(-400f, 7.5f, 1720f);
+            //var cubex = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf_shader"]); cubex.SetPosition(5, 0, 0); cubex.ObjectUsage = OpenTK.Graphics.OpenGL4.BufferUsageHint.StreamDraw;
+            //var cubey = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf_shader"]); cubey.SetPosition(0, 5, 0); cubey.ObjectUsage = OpenTK.Graphics.OpenGL4.BufferUsageHint.StreamDraw;
+            //var cubez = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf_shader"]); cubez.SetPosition(0, 0, 5); cubez.ObjectUsage = OpenTK.Graphics.OpenGL4.BufferUsageHint.StreamDraw;
+            //var g = Assets.ImportGLTF("ground_1.gltf", Assets.Shaders["gltf_shader"]); g.SetScale(40, 60, 40);
+            //var p1 = Assets.ImportGLTF("person_1.gltf", Assets.Shaders["gltf_shader"]); p1.SetPosition(0, -0.3f, 0);
+            //var p2 = Assets.ImportGLTF("person_1.gltf", Assets.Shaders["gltf_shader"]); p2.SetPosition(-75f, 5f, 450f);
+            //var h1 = Assets.ImportGLTF("house_1.gltf", Assets.Shaders["gltf_shader"]); h1.SetPosition(-400f, 7.5f, 1720f);
 
-            for (int i = 0; i < 6; i++)
-            {
-                for (int j = 0; j < 4; j++)
-                {
-                    //var g = Assets.ImportGLTF("ground_1.gltf", Assets.Shaders["gltf"]);
-                    //g.SetPosition(i * 101, 0, j * 101);
-                    //window.Objects.Add(g);
-                }
-            }
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    for (int j = 0; j < 10; j++)
+            //    {
+            //        var g = Assets.ImportGLTF("ground_1.gltf", Assets.Shaders["gltf_shader"]);
+            //        //g.SetScale(10, 20, 10);
+            //        g.SetPosition(i * 102, 0, j * 102);
+            //        window.Objects.Add(g);
+            //    }
+            //}
 
-            window.Objects.Add(cubex);
-            window.Objects.Add(cubey);
-            window.Objects.Add(cubez);
-            window.Objects.Add(g);
-            window.Objects.Add(p1);
-            window.Objects.Add(p2);
-            window.Objects.Add(h1);
+            var floor = Assets.ImportGLTF("tex2cube2_1m.gltf", Assets.Shaders["gltf_shader"]); floor.SetPosition(10f, -1f, 10f); floor.SetScale(1, 20, 20); floor.SetRotation(0, 0, 90);
+            var cube1 = Assets.ImportGLTF("tex2cube2_1m.gltf", Assets.Shaders["gltf_shader"]); cube1.SetPosition(3, 0, 1); cube1.SetRotation(0, 90, 0);
+            var cube2 = Assets.ImportGLTF("tex2cube2_1m.gltf", Assets.Shaders["gltf_shader"]); cube2.SetPosition(0, 3, 0); cube2.SetRotation(0, -45, -45);
+            var cube3 = Assets.ImportGLTF("tex2cube2_1m.gltf", Assets.Shaders["gltf_shader"]); cube3.SetPosition(-3, 0, 0); cube3.SetRotation(0, -45, 0);
+            var cube4 = Assets.ImportGLTF("cube_1m.gltf", Assets.Shaders["gltf_shader"]); cube4.SetPosition(0, 1, 2); cube4.SetRotation(0, -45, 0);
+
+            window.Objects.Add(floor);
+            window.Objects.Add(cube1);
+            window.Objects.Add(cube2);
+            window.Objects.Add(cube3);
+            window.Objects.Add(cube4);
 
             window.VSync = VSyncMode.Off;
             window.UpdateFrequency = 120;

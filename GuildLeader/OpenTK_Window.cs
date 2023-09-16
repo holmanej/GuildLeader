@@ -34,6 +34,7 @@ namespace GuildLeader
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.Blend);
+            GL.Enable(EnableCap.FramebufferSrgb);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
             // Cameras
@@ -126,6 +127,8 @@ namespace GuildLeader
             Vector3 playerPosition = new Vector3(ActiveCam.Position.X, ActiveCam.Position.Y, ActiveCam.Position.Z);
             ActiveCam.UpdateTransform();
 
+            GL.Viewport(0, 0, Size.X, Size.Y);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             foreach (var obj in Objects)
             {
                 obj.Shader.Use();
@@ -136,7 +139,6 @@ namespace GuildLeader
                 obj.Render();
             }
 
-            GL.BindVertexArray(0);
             SwapBuffers();
             base.OnRenderFrame(e);
 
