@@ -134,7 +134,6 @@ namespace GuildLeader
                 Geometry_Shader.SetMatrix4("obj_scale", ScalingMatrix);
                 Geometry_Shader.SetMatrix4("obj_rotate", RotationMatrix);
 
-
                 Geometry_Shader.SetVector3("material.AmbientFactor", _AmbientFactor);
                 Geometry_Shader.SetVector3("material.DiffuseFactor", _DiffuseFactor);
                 Geometry_Shader.SetVector3("material.SpecularFactor", _SpecularFactor);

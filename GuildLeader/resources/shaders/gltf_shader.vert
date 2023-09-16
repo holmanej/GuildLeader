@@ -22,15 +22,15 @@ struct Light
 	vec3 AmbientFactor;
 	vec3 DiffuseFactor;
 	vec3 SpecularFactor;
-	mat4 Projection;
+	//mat4 Projection;
 };
 
-struct Transform
-{
-	mat4 Translation;
-	mat4 Scale;
-	mat4 Rotation;
-};
+//struct Transform
+//{
+//	mat4 Translation;
+//	mat4 Scale;
+//	mat4 Rotation;
+//};
 
 //uniform Transform modelT;
 //uniform Transform viewT;
@@ -63,12 +63,13 @@ out float blinn_frag;
 
 void main()
 {
-	vec4 obj = vec4(vPosition, 1f);
+	vec4 obj = vec4(vPosition, 1f) * obj_scale * obj_rotate * obj_translate;
+	gl_Position = obj * view_translate * view_rotate * view_projection;
 	// mat4 model = modelT.Scale * modelT.Rotation * modelT.Translation;
-	mat4 model = obj_scale * obj_rotate * obj_translate;
+	//mat4 model = obj_scale * obj_rotate * obj_translate;
 	// mat4 view = viewT.Translation * viewT.Rotation;
-	mat4 view = view_translate * view_rotate;
-	gl_Position = obj * model * view * view_projection;
+	//mat4 view = view_translate * view_rotate;
+	//gl_Position = obj * model * view * view_projection;
 	
 	viewPos = player_position;
 	

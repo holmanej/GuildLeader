@@ -56,6 +56,8 @@ namespace GuildLeader
                     ResetKey = Keys.F1,
                     SelectKey = Keys.D2,
                     Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 10000f),
+                    Position = new Vector3(0, 3, -7),
+                    Rotation = new Vector3(350, 180, 0),
                     TranslationSpeed = 10f,
                     VerticalSpeed = 5f,
                     RotationSpeed = 70f,
@@ -131,12 +133,12 @@ namespace GuildLeader
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             foreach (var obj in Objects)
             {
-                obj.Shader.Use();
-                obj.Shader.SetVector3("player_position", playerPosition);
-                obj.Shader.SetMatrix4("view_translate", ActiveCam.ViewTranslation);
-                obj.Shader.SetMatrix4("view_rotate", ActiveCam.ViewRotation);
-                obj.Shader.SetMatrix4("projection", ActiveCam.Projection);
-                obj.Render();
+                obj.Geometry_Shader.Use();
+                obj.Geometry_Shader.SetVector3("player_position", playerPosition);
+                obj.Geometry_Shader.SetMatrix4("view_translate", ActiveCam.ViewTranslation);
+                obj.Geometry_Shader.SetMatrix4("view_rotate", ActiveCam.ViewRotation);
+                obj.Geometry_Shader.SetMatrix4("view_projection", ActiveCam.Projection);
+                obj.RenderGeometry();
             }
 
             SwapBuffers();
