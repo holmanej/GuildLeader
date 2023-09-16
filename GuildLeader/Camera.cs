@@ -4,12 +4,13 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Authentication.ExtendedProtection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace GuildLeader
 {
-    internal class Camera
+    public class Camera
     {
         public string Name = "cam";
         public bool Active;
@@ -19,6 +20,40 @@ namespace GuildLeader
         public float VerticalSpeed;
         public float RotationSpeed;
 
+        public Keys SelectKey = Keys.Unknown;
+        public Keys ResetKey = Keys.Unknown;
+
+        public Vector3 ResetPosition = Vector3.Zero;
+        public Vector3 ResetRotation = Vector3.Zero;
+
+        public Matrix4 ViewTranslation;
+        public Matrix4 ViewScale;
+        public Matrix4 ViewRotation;
+        public Matrix4 Projection;
+
+        public void UpdateTransform()
+        {
+            ViewTranslation = Matrix4.CreateTranslation(-Position.X, -Position.Y, -Position.Z);
+            ViewScale = Matrix4.CreateScale(1f, 1f, 1f);
+            ViewRotation = Matrix4.CreateRotationY(Rotation.Y * 3.14f / 180) * Matrix4.CreateRotationX(-Rotation.X * 3.14f / 180);
+        }
+
+        public bool CheckActive(KeyboardState kb)
+        {
+            if (SelectKey != Keys.Unknown)
+            {
+                //if (kb.IsKeyDown(SelectKey))
+                //{
+                //    Active = true;
+                //}
+                return kb.IsKeyDown(SelectKey);
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public void ReadInputs(KeyboardState kb, MouseState mouse, double deltaTime)
         {
             float dsin = (float)Math.Sin(Rotation.Y * 3.14f / 180) * TranslationSpeed;
@@ -26,6 +61,15 @@ namespace GuildLeader
             float xMove = 0;
             float yMove = 0;
             float zMove = 0;
+
+            if (ResetKey != Keys.Unknown)
+            {
+                if (kb.IsKeyDown(ResetKey))
+                {
+                    Position = ResetPosition;
+                    Rotation = ResetRotation;
+                }
+            }
 
             if (kb.IsKeyDown(Keys.W))
             {

@@ -16,22 +16,9 @@ namespace GuildLeader
     {
         public List<RenderObject> Objects = new List<RenderObject>();
 
-        public Matrix4 Model;
-        public Matrix4 View_Translate;
-        public Matrix4 View_Scale;
-        public Matrix4 View_Rotate;
-        public Matrix4 Projection;
-
-        public string CamName = "cam";
-        public int CamSel;
-        public float ViewX = 0f;
-        public float ViewY = 0;
-        public float ViewZ = 0f;
-        public float AngleX = 0f;
-        public float AngleY = 0f;
-
         private Stopwatch UpdateSW = new Stopwatch();
         private Stopwatch RenderSW = new Stopwatch();
+        private Camera ActiveCam;
         private List<Camera> Cameras;
         private TextObject ViewDebug;
         private TextObject FPSDebug;
@@ -49,28 +36,31 @@ namespace GuildLeader
             GL.Enable(EnableCap.Blend);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 
-            Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 10000f);
-
             // Cameras
             Cameras = new List<Camera>()
             {
                 new Camera()
                 {
                     Name = "Spectator",
+                    ResetKey = Keys.F1,
+                    SelectKey = Keys.D1,
+                    Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 10000f),
                     TranslationSpeed = 400f,
                     VerticalSpeed = 100f,
                     RotationSpeed = 80f,
-                    Active = true,
                 },
                 new Camera()
                 {
                     Name = "Player",
+                    ResetKey = Keys.F1,
+                    SelectKey = Keys.D2,
+                    Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 10000f),
                     TranslationSpeed = 10f,
                     VerticalSpeed = 5f,
                     RotationSpeed = 70f,
-                    Active = false,
                 },
             };
+            ActiveCam = Cameras[1];
 
             // Readouts
             FPSDebug = new TextObject("FpsDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.825f, 0f), Scale = new Vector3(0.001f, 0.0015f, 1f) };
@@ -95,14 +85,6 @@ namespace GuildLeader
         {
             if (e.Key == Keys.Escape) { Close(); }
 
-            int keyint = (int)e.Key;
-            if (keyint >= (int)Keys.D1 && keyint <= (int)Keys.D9 && (keyint - (int)Keys.D1) < Cameras.Count) 
-            {
-                Cameras.ForEach(c => c.Active = false);
-                CamSel = keyint - (int)Keys.D1;
-                Cameras[CamSel].Active = true;
-            }
-
             base.OnKeyUp(e);
         }
 
@@ -111,20 +93,15 @@ namespace GuildLeader
             var updateTime = UpdateSW.Elapsed;
             //Debug.Print("tick: {0}", updateTime);
             UpdateSW.Restart();
-            var cam = Cameras[CamSel];
-            cam.ReadInputs(KeyboardState, MouseState, updateTime.TotalSeconds);
 
-            if (KeyboardState.IsKeyReleased(Keys.F1))
+            foreach (var c in Cameras)
             {
-                cam.Position = Vector3.Zero;
-                cam.Rotation = Vector3.Zero;
+                if (c.CheckActive(KeyboardState))
+                {
+                    ActiveCam = c;
+                }
             }
-            ViewX = cam.Position.X;
-            ViewY = cam.Position.Y;
-            ViewZ = cam.Position.Z;
-            AngleX = cam.Rotation.X;
-            AngleY = cam.Rotation.Y;
-            CamName = cam.Name;
+            ActiveCam.ReadInputs(KeyboardState, MouseState, updateTime.TotalSeconds);
 
             // Debug stats
             UpdateTime_Queue.Enqueue(1000000 / updateTime.TotalMicroseconds);
@@ -141,21 +118,21 @@ namespace GuildLeader
             RenderSW.Restart();
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            ViewDebug.Text = string.Format("X: {0:F2} Y: {1:F2} Z: {2:F2} Ay: {3:F0} Ax: {4:F0}", ViewX, ViewY, ViewZ, AngleY, AngleX);
-            FPSDebug.Text = string.Format("Cam: {0} FPS: {1:F0} Update: {2:F0}", CamName, RenderTime_Queue.Average(), UpdateTime_Queue.Average());
+            ViewDebug.Text = string.Format("X: {0:F2} Y: {1:F2} Z: {2:F2} Ay: {3:F0} Ax: {4:F0}", 
+                ActiveCam.Position.X, ActiveCam.Position.Y, ActiveCam.Position.Z, ActiveCam.Rotation.Y, ActiveCam.Rotation.X);
+            FPSDebug.Text = string.Format("Cam: {0} FPS: {1:F0} Update: {2:F0}", 
+                ActiveCam.Name, RenderTime_Queue.Average(), UpdateTime_Queue.Average());
 
-            View_Translate = Matrix4.CreateTranslation(-ViewX, -ViewY, -ViewZ);
-            View_Scale = Matrix4.CreateScale(1f, 1f, 1f);
-            View_Rotate = Matrix4.CreateRotationY(AngleY * 3.14f / 180) * Matrix4.CreateRotationX(-AngleX * 3.14f / 180);
-            Vector3 playerPosition = new Vector3(ViewX, ViewY, ViewZ);
+            Vector3 playerPosition = new Vector3(ActiveCam.Position.X, ActiveCam.Position.Y, ActiveCam.Position.Z);
+            ActiveCam.UpdateTransform();
 
             foreach (var obj in Objects)
             {
                 obj.Shader.Use();
                 obj.Shader.SetVector3("player_position", playerPosition);
-                obj.Shader.SetMatrix4("view_translate", View_Translate);
-                obj.Shader.SetMatrix4("view_rotate", View_Rotate);
-                obj.Shader.SetMatrix4("projection", Projection);
+                obj.Shader.SetMatrix4("view_translate", ActiveCam.ViewTranslation);
+                obj.Shader.SetMatrix4("view_rotate", ActiveCam.ViewRotation);
+                obj.Shader.SetMatrix4("projection", ActiveCam.Projection);
                 obj.Render();
             }
 
