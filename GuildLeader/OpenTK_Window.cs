@@ -121,10 +121,10 @@ namespace GuildLeader
             RenderSW.Restart();
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            ViewDebug.Text = string.Format("X: {0:F2} Y: {1:F2} Z: {2:F2} Ay: {3:F0} Ax: {4:F0}", 
-                ActiveCam.Position.X, ActiveCam.Position.Y, ActiveCam.Position.Z, ActiveCam.Rotation.Y, ActiveCam.Rotation.X);
-            FPSDebug.Text = string.Format("Cam: {0} FPS: {1:F0} Update: {2:F0}", 
+            FPSDebug.Text = string.Format("Cam: {0} FPS: {1:F0} Update: {2:F0}",
                 ActiveCam.Name, RenderTime_Queue.Average(), UpdateTime_Queue.Average());
+            ViewDebug.Text = string.Format("X: {0:F2} Y: {1:F2} Z: {2:F2} Ay: {3:F0} Ax: {4:F0}", 
+                ActiveCam.Position.X, ActiveCam.Position.Y, ActiveCam.Position.Z, ActiveCam.Rotation.Y, ActiveCam.Rotation.X);            
 
             ActiveCam.UpdateTransform();
 
