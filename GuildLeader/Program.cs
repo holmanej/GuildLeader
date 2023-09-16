@@ -24,9 +24,9 @@ namespace GuildLeader
             // Load Assets
             Assets.LoadAssets();
 
-            //BuildWoodRoom(window);
+            BuildWoodRoom(window);
             //BuildOutside(window);
-            BuildStressTest(window, 10, 10);
+            //BuildStressTest(window, 10, 10);
 
             window.VSync = VSyncMode.Off;
             window.UpdateFrequency = 120;

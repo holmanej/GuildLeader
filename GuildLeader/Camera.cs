@@ -122,6 +122,12 @@ namespace GuildLeader
                 Rotation.X = Rotation.X < 0 ? Rotation.X + 360 : Rotation.X;
             }
 
+            if (kb.IsKeyDown(Keys.LeftShift))
+            {
+                xMove *= 2;
+                yMove *= 2;
+                zMove *= 2;
+            }
             Position.X += (float)(xMove * deltaTime);
             Position.Y += (float)(yMove * deltaTime);
             Position.Z += (float)(zMove * deltaTime);

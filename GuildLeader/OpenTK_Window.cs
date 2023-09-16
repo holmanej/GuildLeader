@@ -22,6 +22,7 @@ namespace GuildLeader
         private List<Camera> Cameras;
         private TextObject ViewDebug;
         private TextObject FPSDebug;
+        private TextObject KeyDesc;
         private Queue<double> UpdateTime_Queue = new Queue<double>();
         private Queue<double> RenderTime_Queue = new Queue<double>();
 
@@ -66,10 +67,12 @@ namespace GuildLeader
             ActiveCam = Cameras[1];
 
             // Readouts
-            FPSDebug = new TextObject("FpsDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.825f, 0f), Scale = new Vector3(0.001f, 0.0015f, 1f) };
-            ViewDebug = new TextObject("ViewDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.75f, 0f), Scale = new Vector3(0.001f, 0.0015f, 1f) };
+            FPSDebug = new TextObject("FpsDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.825f, 0f), Scale = new Vector3(0.00085f, 0.0015f, 1f) };
+            ViewDebug = new TextObject("ViewDebug", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.75f, 0f), Scale = new Vector3(0.00085f, 0.0015f, 1f) };
+            KeyDesc = new TextObject("KeyDesc", Assets.FontSets["DebugFont"], Assets.Shaders["debugText_shader"]) { Position = new Vector3(-1f, 0.675f, 0f), Scale = new Vector3(0.0006f, 0.0015f, 1f) };
             Objects.Add(FPSDebug);
             Objects.Add(ViewDebug);
+            Objects.Add(KeyDesc);
 
             UpdateTime_Queue.Enqueue(0);
             RenderTime_Queue.Enqueue(0);
@@ -124,7 +127,8 @@ namespace GuildLeader
             FPSDebug.Text = string.Format("Cam: {0} FPS: {1:F0} Update: {2:F0}",
                 ActiveCam.Name, RenderTime_Queue.Average(), UpdateTime_Queue.Average());
             ViewDebug.Text = string.Format("X: {0:F2} Y: {1:F2} Z: {2:F2} Ay: {3:F0} Ax: {4:F0}", 
-                ActiveCam.Position.X, ActiveCam.Position.Y, ActiveCam.Position.Z, ActiveCam.Rotation.Y, ActiveCam.Rotation.X);            
+                ActiveCam.Position.X, ActiveCam.Position.Y, ActiveCam.Position.Z, ActiveCam.Rotation.Y, ActiveCam.Rotation.X);
+            KeyDesc.Text = string.Format("1/2: fast/slow cam; WASD; shift (sprint); Space/Ctrl (up/down); Q/E/R/F (turn)");
 
             ActiveCam.UpdateTransform();
 
