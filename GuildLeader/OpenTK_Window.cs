@@ -16,19 +16,13 @@ namespace GuildLeader
     {
         public List<RenderObject> Objects = new List<RenderObject>();
 
-        public Matrix4 Model;
-        public Matrix4 View_Translate;
-        public Matrix4 View_Scale;
-        public Matrix4 View_Rotate;
-        public Matrix4 Projection;
-
         public string CamName = "cam";
-        public int CamSel;
-        public float ViewX = 0f;
-        public float ViewY = 0;
-        public float ViewZ = 0f;
-        public float AngleX = 0f;
-        public float AngleY = 0f;
+        public int CamSel = 1;
+        public float ViewX;
+        public float ViewY;
+        public float ViewZ;
+        public float AngleX;
+        public float AngleY;
 
         private Stopwatch UpdateSW = new Stopwatch();
         private Stopwatch RenderSW = new Stopwatch();
@@ -47,9 +41,8 @@ namespace GuildLeader
             GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
             GL.Enable(EnableCap.DepthTest);
             GL.Enable(EnableCap.Blend);
+            GL.Enable(EnableCap.FramebufferSrgb);
             GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-
-            Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 10000f);
 
             // Cameras
             Cameras = new List<Camera>()
@@ -57,18 +50,20 @@ namespace GuildLeader
                 new Camera()
                 {
                     Name = "Spectator",
+                    Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 10000f),
                     TranslationSpeed = 400f,
                     VerticalSpeed = 100f,
                     RotationSpeed = 80f,
-                    Active = true,
                 },
                 new Camera()
                 {
                     Name = "Player",
+                    Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 10000f),
+                    Position = new Vector3(0, 3, -7),
+                    Rotation = new Vector3(350, 180, 0),
                     TranslationSpeed = 10f,
                     VerticalSpeed = 5f,
                     RotationSpeed = 70f,
-                    Active = false,
                 },
             };
 
@@ -98,9 +93,7 @@ namespace GuildLeader
             int keyint = (int)e.Key;
             if (keyint >= (int)Keys.D1 && keyint <= (int)Keys.D9 && (keyint - (int)Keys.D1) < Cameras.Count) 
             {
-                Cameras.ForEach(c => c.Active = false);
                 CamSel = keyint - (int)Keys.D1;
-                Cameras[CamSel].Active = true;
             }
 
             base.OnKeyUp(e);
@@ -139,27 +132,45 @@ namespace GuildLeader
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             RenderSW.Restart();
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
             ViewDebug.Text = string.Format("X: {0:F2} Y: {1:F2} Z: {2:F2} Ay: {3:F0} Ax: {4:F0}", ViewX, ViewY, ViewZ, AngleY, AngleX);
             FPSDebug.Text = string.Format("Cam: {0} FPS: {1:F0} Update: {2:F0}", CamName, RenderTime_Queue.Average(), UpdateTime_Queue.Average());
+            
+            var cam = Cameras[CamSel];
+            cam.UpdateTransform();
+            var View_Translate = Matrix4.CreateTranslation(-ViewX, -ViewY, -ViewZ);
+            var View_Scale = Matrix4.CreateScale(1f, 1f, 1f);
+            var View_Rotate = Matrix4.CreateRotationY(AngleY * 3.14f / 180) * Matrix4.CreateRotationX(-AngleX * 3.14f / 180);
+            var Projection = Matrix4.CreatePerspectiveFieldOfView(45f * 3.14f / 180f, (float)Size.X / Size.Y, 0.01f, 10000f);
+            var playerPosition = new Vector3(ViewX, ViewY, ViewZ);
 
-            View_Translate = Matrix4.CreateTranslation(-ViewX, -ViewY, -ViewZ);
-            View_Scale = Matrix4.CreateScale(1f, 1f, 1f);
-            View_Rotate = Matrix4.CreateRotationY(AngleY * 3.14f / 180) * Matrix4.CreateRotationX(-AngleX * 3.14f / 180);
-            Vector3 playerPosition = new Vector3(ViewX, ViewY, ViewZ);
+            //foreach (var obj in Objects)
+            //{
+            //    var light_direction = Matrix4.LookAt(light_position, obj.Position, Vector3.UnitY);
+            //    var s = obj.ShadowMap_Shader;
+            //    s.Use();
+            //    s.SetMatrix4("projection", light_projection);
+            //    s.SetMatrix4("light_direction", light_direction);
+            //    GL.Viewport(0, 0, obj.ShadowResolution.X, obj.ShadowResolution.Y);
+            //    obj.RenderShadows();
+            //}
 
+            GL.Viewport(0, 0, Size.X, Size.Y);
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
             foreach (var obj in Objects)
             {
-                obj.Shader.Use();
-                obj.Shader.SetVector3("player_position", playerPosition);
-                obj.Shader.SetMatrix4("view_translate", View_Translate);
-                obj.Shader.SetMatrix4("view_rotate", View_Rotate);
-                obj.Shader.SetMatrix4("projection", Projection);
-                obj.Render();
+                obj.Geometry_Shader.Use();
+                obj.Geometry_Shader.SetVector3("player_position", playerPosition);
+                //obj.Geometry_Shader.SetTransform("viewT", cam.ViewTranslation, cam.ViewScale, cam.ViewRotation);
+                //obj.Geometry_Shader.SetMatrix4("viewT.Translation", cam.ViewTranslation);
+                //obj.Geometry_Shader.SetMatrix4("viewT.Scale", cam.ViewScale);
+                //obj.Geometry_Shader.SetMatrix4("viewT.Rotation", cam.ViewRotation);
+                obj.Geometry_Shader.SetMatrix4("view_translate", View_Translate);
+                obj.Geometry_Shader.SetMatrix4("view_rotate", View_Rotate);
+                obj.Geometry_Shader.SetMatrix4("view_projection", Projection);
+
+                obj.RenderGeometry();
             }
 
-            GL.BindVertexArray(0);
             SwapBuffers();
             base.OnRenderFrame(e);
 

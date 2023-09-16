@@ -79,7 +79,7 @@ namespace GuildLeader
 
         private static RenderObject CreateFontsetRender(FontFamily fontfamily, Color fgColor, Color bgColor, int size, OpenGL_Shader shader)
         {
-            var fontset = new RenderObject() { Shader = shader };
+            var fontset = new RenderObject() { Geometry_Shader = shader };
             fontset.Polygons = new List<RenderObject.Polygon>();
             var font = new Font(fontfamily, size, GraphicsUnit.Pixel);
             for (int i = 32; i < 127; i++)
@@ -130,7 +130,7 @@ namespace GuildLeader
             SetDir(@"/resources/models");
             var importer = new GLTF_Importer(file);
             var obj = importer.CreateGLTFRenderObject();
-            obj.Shader = shader;
+            obj.Geometry_Shader = shader;
             return obj;
         }
 

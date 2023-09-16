@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace GuildLeader
 {
-    internal class Camera
+    public class Camera
     {
         public string Name = "cam";
         public bool Active;
@@ -18,6 +18,18 @@ namespace GuildLeader
         public float TranslationSpeed;
         public float VerticalSpeed;
         public float RotationSpeed;
+
+        public Matrix4 ViewTranslation;
+        public Matrix4 ViewScale;
+        public Matrix4 ViewRotation;
+        public Matrix4 Projection;
+
+        public void UpdateTransform()
+        {
+            ViewTranslation = Matrix4.CreateTranslation(-Position.X, -Position.Y, -Position.Z);
+            ViewScale = Matrix4.CreateScale(1f, 1f, 1f);
+            ViewRotation = Matrix4.CreateRotationY(Rotation.Y * 3.14f / 180) * Matrix4.CreateRotationX(-Rotation.X * 3.14f / 180);
+        }
 
         public void ReadInputs(KeyboardState kb, MouseState mouse, double deltaTime)
         {
