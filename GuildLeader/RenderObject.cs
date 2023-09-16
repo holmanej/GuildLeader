@@ -126,18 +126,8 @@ namespace GuildLeader
             if (Visible && Geometry_Shader != null)
             {
                 Geometry_Shader.Use();
-                //Geometry_Shader.SetTransform("modelT", PositionMatrix, ScalingMatrix, RotationMatrix);
-                //Geometry_Shader.SetMatrix4("modelT.Translation", PositionMatrix);
-                //Geometry_Shader.SetMatrix4("modelT.Scale", ScalingMatrix);
-                //Geometry_Shader.SetMatrix4("modelT.Rotation", RotationMatrix);
-                Geometry_Shader.SetMatrix4("obj_translate", PositionMatrix);
-                Geometry_Shader.SetMatrix4("obj_scale", ScalingMatrix);
-                Geometry_Shader.SetMatrix4("obj_rotate", RotationMatrix);
-
-                Geometry_Shader.SetVector3("material.AmbientFactor", _AmbientFactor);
-                Geometry_Shader.SetVector3("material.DiffuseFactor", _DiffuseFactor);
-                Geometry_Shader.SetVector3("material.SpecularFactor", _SpecularFactor);
-                Geometry_Shader.SetFloat("material.ShinyFactor", _ShinyFactor);
+                Geometry_Shader.SetTransform("modelT", PositionMatrix, ScalingMatrix, RotationMatrix);
+                Geometry_Shader.SetMaterial("modelMat", _AmbientFactor, _DiffuseFactor, _SpecularFactor, _ShinyFactor);
                 Geometry_Shader.SetFloat("blinn", Blinn_Lighting ? 1 : 0);
                 Geometry_Shader.SetFloat("tex_alpha", Alpha);
 

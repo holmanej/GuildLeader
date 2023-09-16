@@ -126,7 +126,6 @@ namespace GuildLeader
             FPSDebug.Text = string.Format("Cam: {0} FPS: {1:F0} Update: {2:F0}", 
                 ActiveCam.Name, RenderTime_Queue.Average(), UpdateTime_Queue.Average());
 
-            Vector3 playerPosition = new Vector3(ActiveCam.Position.X, ActiveCam.Position.Y, ActiveCam.Position.Z);
             ActiveCam.UpdateTransform();
 
             GL.Viewport(0, 0, Size.X, Size.Y);
@@ -134,9 +133,7 @@ namespace GuildLeader
             foreach (var obj in Objects)
             {
                 obj.Geometry_Shader.Use();
-                obj.Geometry_Shader.SetVector3("player_position", playerPosition);
-                obj.Geometry_Shader.SetMatrix4("view_translate", ActiveCam.ViewTranslation);
-                obj.Geometry_Shader.SetMatrix4("view_rotate", ActiveCam.ViewRotation);
+                obj.Geometry_Shader.SetTransform("viewT", ActiveCam.ViewTranslation, ActiveCam.ViewScale, ActiveCam.ViewRotation);
                 obj.Geometry_Shader.SetMatrix4("view_projection", ActiveCam.Projection);
                 obj.RenderGeometry();
             }

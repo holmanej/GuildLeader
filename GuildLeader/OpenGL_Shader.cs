@@ -141,5 +141,14 @@ namespace GuildLeader
             GL.UniformMatrix4(GL.GetUniformLocation(Handle, name + ".Scale"), true, ref scale);
             GL.UniformMatrix4(GL.GetUniformLocation(Handle, name + ".Rotation"), true, ref rotat);
         }
+
+        public void SetMaterial(string name, Vector3 ambi, Vector3 diff, Vector3 spec, float shiny)
+        {
+            GL.UseProgram(Handle);
+            GL.Uniform3(GL.GetUniformLocation(Handle, name + ".AmbientFactor"), ambi);
+            GL.Uniform3(GL.GetUniformLocation(Handle, name + ".DiffuseFactor"), diff);
+            GL.Uniform3(GL.GetUniformLocation(Handle, name + ".SpecularFactor"), spec);
+            GL.Uniform1(GL.GetUniformLocation(Handle, name + ".ShinyFactor"), 1, ref shiny);
+        }
     }
 }
